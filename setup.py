@@ -7,7 +7,7 @@ with open("requirements.txt", "r") as f:
     req = f.readlines()
 
 name_ = 'image_tiller'
-desc_ = =name_+' is a Python library for tiling and retiling images. It can be used for splitting large images into smaller tiles for other applications like Training Deep Learning models, inference on large images, etc.',
+desc_ = name_+' is a Python library for tiling and retiling images. It can be used for splitting large images into smaller tiles for other applications like Training Deep Learning models, inference on large images, etc.',
     
 setup(
     name=name_,
