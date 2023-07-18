@@ -26,6 +26,7 @@ jobs:
       run: >-
         python3 -m
         pip install
+        pip install --upgrade pip
         build
           --user
     - name: Build a binary wheel and source tarball
