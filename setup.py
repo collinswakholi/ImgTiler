@@ -7,7 +7,7 @@ with open("requirements.txt", "r") as f:
     req = f.readlines()
     
 setup(
-    name='imagetiling',
+    name='imagetiling_test',
     version='0.1.0',
     description='ImgTiler is a Python library for tiling and retiling images. It can be used for splitting large images into smaller tiles for other applications like Training Deep Learning models, inference on large images, etc.',
     long_description=long_descr,
