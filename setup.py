@@ -10,11 +10,11 @@ setup(
     name='ImgTiler',
     version='0.1.0',
     description='ImgTiler is a Python library for tiling and retiling images. It can be used for splitting large images into smaller tiles for other applications like Training Deep Learning models, inference on large images, etc.',
-    long_description = long_descr,
+    long_description=long_descr,
     author='Collins Wakholi',
     author_email='wcoln@yahoo.com',
     url='https://github.com/CollinsWakholi/ImgTiler',
-    download_url = 'https://github.com/collinswakholi/ImgTiler/archive/refs/tags/v0.1.0.tar.gz',
+    download_url='https://github.com/collinswakholi/ImgTiler/archive/refs/tags/v0.1.0.tar.gz',
     packages=find_packages(),
     install_requires=req,
     classifiers=[
