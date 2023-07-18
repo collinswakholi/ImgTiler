@@ -12,7 +12,7 @@ on:
   push:
     branches:
       - main
-      
+    
 jobs:
   build-n-publish:
     name: Build and publish Python distribution to PyPI and TestPyPI
