@@ -7,7 +7,7 @@ Image Tiler is a Python package that allows you to split an image into tiles bas
 You can install Image Tiler using pip:
 
 ```shell
-pip install ImgTiler
+pip install image-tiller
 ```
 
 ## Usage
