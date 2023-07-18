@@ -9,6 +9,7 @@ setup(
     author='Collins Wakholi',
     author_email='wcoln@yahoo.com',
     url='https://github.com/CollinsWakholi/ImgTiler',
+    download_url = 'https://github.com/collinswakholi/ImgTiler/archive/refs/tags/v0.1.0.tar.gz'
     packages=find_packages(),
     install_requires=[
         'opencv-python',
