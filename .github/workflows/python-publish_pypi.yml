@@ -46,4 +46,3 @@ jobs:
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         password: ${{ secrets.MY_PYPI_TOKEN }}
-        repository-url: https://pypi.python.org/pypi
