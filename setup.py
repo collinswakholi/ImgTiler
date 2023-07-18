@@ -5,11 +5,14 @@ with open('README.md', mode='r', encoding='utf-8') as fh:
 
 with open("requirements.txt", "r") as f:
     req = f.readlines()
+
+name_ = 'image_tiller'
+desc_ = =name_+' is a Python library for tiling and retiling images. It can be used for splitting large images into smaller tiles for other applications like Training Deep Learning models, inference on large images, etc.',
     
 setup(
-    name='image_tiller',
+    name=name_,
     version='0.1.0',
-    description=name+' is a Python library for tiling and retiling images. It can be used for splitting large images into smaller tiles for other applications like Training Deep Learning models, inference on large images, etc.',
+    description=desc_
     long_description=long_descr,
     long_description_content_type='text/markdown',
     author='Collins Wakholi',
