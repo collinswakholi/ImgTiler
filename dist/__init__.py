@@ -1,5 +1,5 @@
 import sys
-from ImageTiler import SplitImage, CombineTiles
+from dist.ImageTiler import SplitImage, CombineTiles
 
 from pkg_resources import get_distribution, DistributionNotFound
 
