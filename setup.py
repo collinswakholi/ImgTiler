@@ -11,7 +11,7 @@ desc_ = name_+' is a Python library for tiling and retiling images. It can be us
     
 setup(
     name=name_,
-    version='0.1.1',
+    version='0.1.2',
     description=desc_,
     long_description=long_descr,
     long_description_content_type='text/markdown',
