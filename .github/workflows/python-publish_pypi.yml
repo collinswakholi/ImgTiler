@@ -9,9 +9,11 @@
 name: Publish Python Package to PyPI and TestPyPI
 
 on: 
-  push:
-    branches:
-      - main
+  release:
+    types: [published]
+
+permissions:
+  contents: read
     
 jobs:
   build-n-publish:
