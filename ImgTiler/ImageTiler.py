@@ -2,6 +2,50 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 
+
+def what_is(image):
+    type_ = (str(image.dtype)).lower()
+    if 'float' in type_:
+        max_val = np.max(image)
+        min_val = np.min(image)
+    elif 'uint8' in type_:
+        max_val = 255
+        min_val = 0
+    elif 'uint16' in type_:
+        max_val = 65535
+        min_val = 0
+    elif 'uint32' in type_:
+        max_val = 4294967295
+        min_val = 0
+    
+    dtype = eval('np.'+type_)
+    
+    # print("max_val: ", max_val)
+    # print("min_val: ", min_val)
+    
+    return dtype, max_val, min_val
+
+def convert_to_uint8(image, dtype=np.uint8, min_val=0, max_val=255):
+    type_ = (str(dtype)).lower()
+    if 'uint' in type_:
+        image = np.array(image, dtype=np.uint8)
+    else:
+        image = np.array((image-min_val)/(max_val-min_val)*255, dtype=np.uint8)
+    
+    return image
+
+def convert_from_uint8(image, dtype=np.uint8, min_val=0, max_val=255):
+    type_ = (str(dtype)).lower()
+    if 'float' in type_:
+        image = np.array(image/255*(max_val-min_val)+min_val, dtype=dtype)
+    elif 'uint8' in type_:
+        image = np.array(image, dtype=np.uint8)
+    else:
+        image = np.array(round(image/255*(max_val-min_val)+min_val), dtype=dtype)
+        
+    return image
+    
+    
 class SplitImage:
     """
     Class to split an image into tiles based on a grid (m x n) and overlap between tiles
@@ -15,10 +59,15 @@ class SplitImage:
             grid (tuple): Grid dimensions (rows, columns) to split the image.
             overlap (int): Number of pixels to overlap between tiles.
         """
-        self.image = image
+        self.type, self.min_val, self.max_val = what_is(image)
+        self.image = convert_to_uint8(image, dtype=self.type, min_val=self.min_val, max_val=self.max_val)
         self.grid = grid
         self.overlap = max(overlap, 1)
-
+        
+        # print("\nImage channels: ", image.shape[2] if len(image.shape) == 3 else 1)
+        # print("Input data type: ", type)
+  
+    
     def pad_image(self, image, padding):
         """
         Pad the image with zeros.
@@ -77,7 +126,10 @@ class SplitImage:
         y1 = j * tile_width
         y2 = (j + 1) * tile_width + 2 * overlap
 
-        tile = image[x1:x2, y1:y2]
+        if len(image.shape) == 2:
+            tile = image[x1:x2, y1:y2]
+        else:
+            tile = image[x1:x2, y1:y2, :]
         return tile
 
     def split_image(self, show_rect=True, show_tiles=True):
@@ -99,14 +151,18 @@ class SplitImage:
         tile_width = width // self.grid[1]
 
         image = self.pad_image(image, (overlap, overlap, overlap, overlap))
-
+        c = image.shape[2] if len(image.shape) == 3 else 1
+        
         tiles = []
         for i in range(self.grid[0]):
             for j in range(self.grid[1]):
                 tile = self.extract_tile(image, tile_height, tile_width, i, j)
-
-                cv2.rectangle(tile, (overlap, overlap), (tile_width + overlap, tile_height + overlap), (255, 0, 0), 1) if show_rect else None
-
+            
+                # preview if c <= 3 else  do nothing
+                if c <= 3: # if image is RGB or grayscale
+                    cv2.rectangle(tile, (overlap, overlap), (tile_width + overlap, tile_height + overlap), (255, 0, 0), 1) if show_rect else None
+                    
+                tile = convert_from_uint8(tile, dtype=self.type, min_val=self.min_val, max_val=self.max_val)
                 tiles.append(tile)
 
         self.preview_tiles(tiles) if show_tiles else None
@@ -118,15 +174,22 @@ class SplitImage:
         Display the tiles in a grid.
 
         Args:
-            tiles (list): List of tiles.
+            tiles (list): List of tiles of ndarray type.
         """
         grid = self.grid
         fig, ax = plt.subplots(grid[0], grid[1], figsize=(20, 20))
         if np.any(np.array(grid) == 1):
             ax = ax.flatten()
         for i, tile in enumerate(tiles):
-            tile = tile[:, :, ::-1] if len(tile.shape) == 3 else tile
-            plt.set_cmap('gray') if len(tile.shape) == 2 else None
+            tile = convert_to_uint8(tile, dtype=self.type, min_val=self.min_val, max_val=self.max_val) # convert to uint8 for preview
+            c = tiles[0].shape[2] if len(tiles[0].shape) == 3 else 1
+            if c>3: # get the first channel of the image
+                tile = tile[:, :, 0]
+                plt.set_cmap('gray')
+            else: # if image is RGB or grayscale
+                tile = tile[:, :, ::-1] if len(tile.shape) == 3 else tile
+                plt.set_cmap('gray') if len(tile.shape) == 2 else None
+                
             if np.any(np.array(grid) == 1):
                 ax[i].imshow(tile)
                 ax[i].set_title('Tile {}'.format(i + 1))
@@ -149,10 +212,13 @@ class CombineTiles:
             grid (tuple): Grid dimensions (rows, columns) of the tiles.
             overlap (int): Number of pixels overlapped between tiles.
         """
-        self.tiles = tiles
+        self.type, self.min_val, self.max_val = what_is(tiles[0])
+        self.tiles = [convert_to_uint8(tile, dtype=self.type, min_val=self.min_val, max_val=self.max_val) for tile in tiles]
         self.grid = grid
         self.overlap = max(overlap, 1)
-
+        # print("\nTile channels: ", tiles[0].shape[2] if len(tiles[0].shape) == 3 else 1)
+        # print("Input data type: ", type)
+        
     def depad_tiles(self, tiles):
         """
         Remove the padding from the tiles to get the original tile size.
@@ -184,7 +250,7 @@ class CombineTiles:
 
         tile_height, tile_width = tiles[0].shape[:2]
         image_shape = (tile_height * grid[0], tile_width * grid[1], tiles[0].shape[2]) if len(tiles[0].shape) == 3 else (tile_height * grid[0], tile_width * grid[1])
-        image = np.zeros(image_shape, dtype=np.uint8)
+        image = np.zeros(image_shape, dtype=self.type)
 
         for i in range(grid[0]):
             for j in range(grid[1]):
@@ -193,9 +259,10 @@ class CombineTiles:
                     image[i * tile_height:(i + 1) * tile_height, j * tile_width:(j + 1) * tile_width, :] = tile
                 else:
                     image[i * tile_height:(i + 1) * tile_height, j * tile_width:(j + 1) * tile_width] = tile
-
+                   
+        image = convert_from_uint8(image, dtype=self.type, min_val=self.min_val, max_val=self.max_val)
         self.preview_image(image) if show_image else None
-
+        
         return image
 
     def preview_image(self, image):
@@ -205,22 +272,34 @@ class CombineTiles:
         Args:
             image (ndarray): Reconstructed image.
         """
-        plt.figure(figsize=(10, 10))
         try:
-            plt.imshow(image[:, :, ::-1])
+            c = image.shape[2]
         except:
+            c = 1
+        image = image[:, :, 0] if c > 3 else image
+        # convert to uint8
+        image = convert_to_uint8(image, dtype=self.type, min_val=self.min_val, max_val=self.max_val)
+        
+        plt.figure(figsize=(10, 10))
+        if c==3:
+            plt.imshow(image[:, :, ::-1])
+        else:
             plt.imshow(image)
             plt.set_cmap('gray')
         plt.title('Reconstructed image')
         plt.show()
 
 
-# Class Implemmeantation Example
+# # Class Implemmeantation Example
 # import cv2
 # from ImageTiler import *
 
 # image = cv2.imread('img.jpg')
-# grid = (5,4)
+# # import skimage.io as io
+# # image = io.imread('recon_00000.tiff')
+# # image = np.array(image)
+
+# grid = (2,3)
 # overlap = 30
 # show_image = True
 # show_rect = True
